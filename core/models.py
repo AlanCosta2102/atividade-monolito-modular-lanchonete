@@ -188,3 +188,18 @@ class NotificacaoCozinha(models.Model):
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name="notificacao_cozinha")
     lida = models.BooleanField(default=False)
     criado_em = models.DateTimeField(auto_now_add=True)
+
+class Meta:
+    db_table = 'cardapio.item'
+
+class Meta:
+    db_table = 'pedidos.pedido'
+
+class Meta:
+    db_table = 'pedidos.item_pedido'
+
+class Meta:
+    db_table = 'pagamento.forma_pagamento'
+
+class Meta:
+    db_table = 'notificacao.notificacao_cozinha'
