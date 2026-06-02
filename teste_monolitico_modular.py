@@ -1,20 +1,50 @@
 """
 Requisitos:
 - Servidor Django rodando (ex.: python manage.py runserver)
-- Usuário de teste já criado (configurar USER_EMAIL e USER_PASSWORD)
-- Formas de pagamento ativas no banco (CREDIT_CARD, PIX, BOLETO)
 - Biblioteca 'requests' instalada
+- O script agora cria automaticamente usuário e formas de pagamento.
 """
 
-import json
+import os
 import sys
+import json
 import requests
 from requests.auth import HTTPBasicAuth
+
+# ------------------------------------------------------------
+# Configurar ambiente Django para acesso ao banco de dados
+# ------------------------------------------------------------
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sistema_lanchonete.settings')
+import django
+django.setup()
+
+from core.models import User, FormaPagamento  # Acesso direto aos modelos
 
 # ---------- CONFIGURAÇÕES ----------
 BASE_URL = "http://127.0.0.1:8000/api"
 USER_EMAIL = "teste@teste.com"
-USER_PASSWORD = "teste123"
+USER_PASSWORD = "123"           # Mantida conforme seu script atual
+
+# ---------- GARANTIA DE DADOS ----------
+def garantir_usuario():
+    """Cria o usuário de teste se ainda não existir."""
+    if not User.objects.filter(email=USER_EMAIL).exists():
+        User.objects.create_user(
+            email=USER_EMAIL,
+            password=USER_PASSWORD,
+            username='teste',
+            first_name='Teste',
+            last_name='User'
+        )
+        print("✅ Usuário de teste criado.")
+    else:
+        print("ℹ️ Usuário de teste já existe.")
+
+def garantir_formas_pagamento():
+    """Cria as três formas de pagamento (CREDIT_CARD, PIX, BOLETO) ativas se não existirem."""
+    for nome, _ in FormaPagamento.METODO_CHOICES:
+        FormaPagamento.objects.get_or_create(nome=nome, defaults={'ativo': True})
+    print("✅ Formas de pagamento garantidas.")
 
 # ---------- FUNÇÕES AUXILIARES ----------
 def autenticar():
@@ -243,6 +273,15 @@ def test_fluxo_pedido():
 # ---------- EXECUÇÃO ----------
 if __name__ == "__main__":
     print("🚀 Iniciando testes da API (modo independente de Django)...")
+    print("⚙️ Garantindo dados mínimos (usuário e formas de pagamento)...")
+    
+    try:
+        garantir_usuario()
+        garantir_formas_pagamento()
+    except Exception as e:
+        print(f"❌ Erro ao configurar dados iniciais: {e}")
+        sys.exit(1)
+
     verificar_precondicoes()
 
     try:
